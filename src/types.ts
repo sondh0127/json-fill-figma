@@ -2,7 +2,7 @@ import { EventHandler } from '@create-figma-plugin/utilities'
 
 export interface SubmitHandler extends EventHandler {
   name: 'SUBMIT'
-  handler: () => void
+  handler: (payload: { data: any[] }) => void
 }
 
 export interface CloseHandler extends EventHandler {

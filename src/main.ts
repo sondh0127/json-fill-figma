@@ -7,16 +7,18 @@ export default function () {
   let activeTabIndex = 0;
   let keys: string[] = [];
 
+  let dataEntries: any[] = []
+
   function getData() {
     // Get keys of data after import
-    for (const dataNodes of datasets[activeTabIndex]) {
+    for (const dataNodes of dataEntries) {
       keys = Object.keys(dataNodes);
     }
   }
 
   async function selectData(iterate = true) {
     // For iteration
-    const length = datasets[activeTabIndex].length;
+    const length = dataEntries.length;
     let usedKeys: string[] = [];
 
     // Get selection
@@ -56,7 +58,7 @@ export default function () {
               }
               // If index reached its end
               index = (index >= length) ? 0 : index;
-              layer.characters = datasets[activeTabIndex][index][key].toString();
+              layer.characters = dataEntries[index][key].toString();
 
               // Add key to used keys
               usedKeys.push(key);
@@ -68,7 +70,7 @@ export default function () {
             for (const layer of textLayers) {
               await loadFontsAsync([layer]);
 
-              layer.characters = datasets[activeTabIndex][0][key].toString();
+              layer.characters = dataEntries[0][key].toString();
             }
           }
         }
@@ -99,7 +101,8 @@ export default function () {
     figma.notify('Nhập dữ liệu thành công!');
   })
 
-  on<SubmitHandler>('SUBMIT', () => {
+  on<SubmitHandler>('SUBMIT', ({ data }) => {
+    dataEntries = data;
     getData();
     selectData();
   })
@@ -108,14 +111,14 @@ export default function () {
     figma.closePlugin()
   })
 
-  on<WarnHandler>('WARN', ({type}) => {
+  on<WarnHandler>('WARN', ({ type }) => {
     switch (type) {
       case 'EMPTY_OBJECT':
         figma.notify('Phát hiện ra một số đối tượng trống rỗng và đã bị loại bỏ.');
         break;
-        case 'NON_ARRAY':
-          figma.notify('Dữ liệu đầu vào không hợp lệ. Vui lòng nhập dữ liệu vào một mảng.');
-          break;
+      case 'NON_ARRAY':
+        figma.notify('Dữ liệu đầu vào không hợp lệ. Vui lòng nhập dữ liệu vào một mảng.');
+        break;
       default:
         break;
     }
