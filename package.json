@@ -19,7 +19,7 @@
     "editorType": [
       "figma"
     ],
-    "id": "sigma-interactive",
+    "id": "1058574618713596510",
     "name": "Bảng xếp hạng",
     "main": "src/main.ts",
     "ui": "src/ui.tsx"
