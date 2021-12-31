@@ -12,11 +12,11 @@ import {
   DropdownOption,
   Dropdown
 } from '@create-figma-plugin/ui'
-import { emit } from '@create-figma-plugin/utilities'
+import { emit, on } from '@create-figma-plugin/utilities'
 import { h } from 'preact'
 import { useState, useMemo } from 'preact/hooks'
 import { setup } from 'twind/shim'
-import { CloseHandler, SubmitHandler, SuccessHandler, LoadHandler, WarnHandler } from './types'
+import { CloseHandler, SubmitHandler, SuccessHandler, LoadHandler, WarnHandler, SaveSettingsHandler, SETTING_DATA_KEY, LoadSettingsHandler } from './types'
 
 setup({
   preflight: true,
@@ -53,6 +53,15 @@ function Plugin() {
 
   const disabled = useMemo(() => dataEntries.length === 0, [dataEntries])
 
+  on<LoadSettingsHandler>('LOAD_SETTINGS', (settingKey, settings) => {
+    switch (settingKey) {
+      case SETTING_DATA_KEY.DATA_CONFIG:
+        setDataConfig(settings)
+        break;
+      default:
+        break;
+    }
+  });
 
   const handleSelectedFiles = (files: Array<File>) => {
     if (files.length <= 0) {
@@ -85,19 +94,24 @@ function Plugin() {
             emit<WarnHandler>('WARN', { type: 'EMPTY_OBJECT' })
             errorCount++;
           }
-
-          if (!_errorEmpty) {
-            setDataEntries(data)
-
-            setDataConfig(Object.keys(data[0]).map(key => {
-              return {
-                key: key,
-                suffix: '',
-                mark: 'UNSET'
-              }
-            }))
-          }
         }
+
+        if (!errorCount) {
+          setDataEntries(data)
+        }
+
+        const dataKeys = JSON.stringify(Object.keys(data[0]))
+        const configKeys = JSON.stringify(dataConfig.map(item => item.key))
+        if (dataKeys !== configKeys) {
+          setDataConfig(Object.keys(data[0]).map(key => {
+            return {
+              key: key,
+              suffix: '',
+              mark: 'UNSET'
+            }
+          }))
+        }
+
         setErrorMsg('')
         emit<SuccessHandler>('SUCCESS')
       } catch (error) {
@@ -133,6 +147,7 @@ function Plugin() {
 
     })
     emit<SubmitHandler>('SUBMIT', { data: newDataEntries })
+    emit<SaveSettingsHandler>('SAVE_SETTINGS', SETTING_DATA_KEY.DATA_CONFIG, dataConfig)
   }
 
   const [isOpen, setIsOpen] = useState(false)

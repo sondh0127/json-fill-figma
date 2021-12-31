@@ -1,5 +1,6 @@
-import { once, showUI, on, loadFontsAsync } from '@create-figma-plugin/utilities'
-import { CloseHandler, LoadHandler, SubmitHandler, SuccessHandler, WarnHandler } from './types'
+import { once, showUI, on, loadFontsAsync, loadSettingsAsync, saveSettingsAsync, emit } from '@create-figma-plugin/utilities'
+import { CloseHandler, LoadHandler, LoadSettingsHandler, SaveSettingsHandler, SETTING_DATA_KEY, SubmitHandler, SuccessHandler, WarnHandler } from './types'
+
 
 export default function () {
   let datasets: Record<string, any> = {};
@@ -8,6 +9,10 @@ export default function () {
   let keys: string[] = [];
 
   let dataEntries: any[] = []
+
+  loadSettingsAsync([], SETTING_DATA_KEY.DATA_CONFIG).then((value) => {
+    emit<LoadSettingsHandler>("LOAD_SETTINGS", SETTING_DATA_KEY.DATA_CONFIG, value);
+  })
 
   function getData() {
     // Get keys of data after import
@@ -78,7 +83,9 @@ export default function () {
     }
   }
 
-
+  on<SaveSettingsHandler>('SAVE_SETTINGS', (settingKey, settings) => {
+    saveSettingsAsync(settings, settingKey)
+  });
 
   on<LoadHandler>('LOAD', (msg) => {
     data = msg.data;
@@ -126,7 +133,7 @@ export default function () {
   })
 
   showUI({
-    width: 250,
+    width: 300,
     height: 500
   })
 }
